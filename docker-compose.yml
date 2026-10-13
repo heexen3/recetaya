@@ -1,0 +1,159 @@
+services:
+
+  # ── Bases de datos ──────────────────────────────────────────────
+
+  db-auth:
+    image: postgres:16-alpine
+    container_name: db-auth
+    environment:
+      POSTGRES_DB: auth
+      POSTGRES_USER: recetaya
+      POSTGRES_PASSWORD: recetaya123
+    ports:
+      - "5431:5432"
+    volumes:
+      - db-auth-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recetaya -d auth"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  db-recetas:
+    image: postgres:16-alpine
+    container_name: db-recetas
+    environment:
+      POSTGRES_DB: recetas
+      POSTGRES_USER: recetaya
+      POSTGRES_PASSWORD: recetaya123
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-recetas-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recetaya -d recetas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  db-inventario:
+    image: postgres:16-alpine
+    container_name: db-inventario
+    environment:
+      POSTGRES_DB: inventario
+      POSTGRES_USER: recetaya
+      POSTGRES_PASSWORD: recetaya123
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-inventario-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recetaya -d inventario"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  db-dispensacion:
+    image: postgres:16-alpine
+    container_name: db-dispensacion
+    environment:
+      POSTGRES_DB: dispensacion
+      POSTGRES_USER: recetaya
+      POSTGRES_PASSWORD: recetaya123
+    ports:
+      - "5434:5432"
+    volumes:
+      - db-dispensacion-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recetaya -d dispensacion"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Microservicios ──────────────────────────────────────────────
+
+  ms-auth:
+    build: ./ms-auth
+    container_name: ms-auth
+    environment:
+      DB_URL: jdbc:postgresql://db-auth:5432/auth
+      DB_USER: recetaya
+      DB_PASSWORD: recetaya123
+      JWT_SECRET: clave-secreta-muy-larga-para-firmar-tokens-jwt-recetaya-2026
+    ports:
+      - "8081:8081"
+    depends_on:
+      db-auth:
+        condition: service_healthy
+
+  ms-recetas:
+    build: ./ms-recetas
+    container_name: ms-recetas
+    environment:
+      DB_URL: jdbc:postgresql://db-recetas:5432/recetas
+      DB_USER: recetaya
+      DB_PASSWORD: recetaya123
+    ports:
+      - "8082:8082"
+    depends_on:
+      db-recetas:
+        condition: service_healthy
+
+  ms-inventario:
+    build: ./ms-inventario
+    container_name: ms-inventario
+    environment:
+      DB_URL: jdbc:postgresql://db-inventario:5432/inventario
+      DB_USER: recetaya
+      DB_PASSWORD: recetaya123
+    ports:
+      - "8083:8083"
+    depends_on:
+      db-inventario:
+        condition: service_healthy
+
+  ms-dispensacion:
+    build: ./ms-dispensacion
+    container_name: ms-dispensacion
+    environment:
+      DB_URL: jdbc:postgresql://db-dispensacion:5432/dispensacion
+      DB_USER: recetaya
+      DB_PASSWORD: recetaya123
+      INVENTARIO_URL: http://ms-inventario:8083
+      RECETAS_URL: http://ms-recetas:8082
+    ports:
+      - "8084:8084"
+    depends_on:
+      db-dispensacion:
+        condition: service_healthy
+      ms-inventario:
+        condition: service_started
+      ms-recetas:
+        condition: service_started
+
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    environment:
+      AUTH_URL: http://ms-auth:8081
+      RECETAS_URL: http://ms-recetas:8082
+      INVENTARIO_URL: http://ms-inventario:8083
+      DISPENSACION_URL: http://ms-dispensacion:8084
+      JWT_SECRET: clave-secreta-muy-larga-para-firmar-tokens-jwt-recetaya-2026
+    ports:
+      - "8080:8080"
+    depends_on:
+      ms-auth:
+        condition: service_started
+      ms-recetas:
+        condition: service_started
+      ms-inventario:
+        condition: service_started
+      ms-dispensacion:
+        condition: service_started
+
+volumes:
+  db-auth-data:
+  db-recetas-data:
+  db-inventario-data:
+  db-dispensacion-data:
