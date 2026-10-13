@@ -1,0 +1,689 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "RecetaYa - API Endpoints (Gateway)",
+		"description": "Colección completa para pruebas funcionales y flujo de negocio en RecetaYa pasando por el API Gateway (puerto 8080) con autenticación JWT.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "jwtToken",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "1. Autenticación (ms-auth)",
+			"item": [
+				{
+					"name": "1.1 Registro Médico",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"dr.perez\",\n  \"password\": \"pass123\",\n  \"nombreCompleto\": \"Dr. Juan Pérez\",\n  \"rol\": \"MEDICO\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/registro",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"registro"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.2 Registro Farmacéutico",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"farm.garcia\",\n  \"password\": \"pass123\",\n  \"nombreCompleto\": \"Farm. Ana García\",\n  \"rol\": \"FARMACEUTICO\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/registro",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"registro"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.3 Login (Guarda Token Automáticamente)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.collectionVariables.set(\"jwtToken\", jsonData.token);",
+									"    console.log(\"Token guardado en colección:\", jsonData.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\": \"dr.perez\",\n  \"password\": \"pass123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1.4 Listar Usuarios (Protegido)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/usuarios",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"usuarios"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "2. Inventario (ms-inventario)",
+			"item": [
+				{
+					"name": "2.1 Crear Sucursal",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nombre\": \"Sucursal Centro\",\n  \"direccion\": \"Av. Principal 123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sucursales",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"sucursales"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.2 Listar Sucursales",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/sucursales",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"sucursales"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.3 Crear Medicamento",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"codigo\": \"PARA500\",\n  \"nombre\": \"Paracetamol 500mg\",\n  \"principioActivo\": \"Paracetamol\",\n  \"requiereReceta\": false\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/medicamentos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"medicamentos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.4 Listar Medicamentos",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/medicamentos",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"medicamentos"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.5 Fijar Stock en Sucursal",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"medicamentoId\": 1,\n  \"sucursalId\": 1,\n  \"cantidad\": 50\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/stock",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"stock"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "2.6 Consultar Stock Medicamento en Sucursal",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/stock/consulta?medicamentoId=1&sucursalId=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"stock",
+								"consulta"
+							],
+							"query": [
+								{
+									"key": "medicamentoId",
+									"value": "1"
+								},
+								{
+									"key": "sucursalId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "3. Recetas (ms-recetas)",
+			"item": [
+				{
+					"name": "3.1 Emitir Receta Médica",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"pacienteNombre\": \"María López\",\n  \"pacienteRut\": \"12345678-9\",\n  \"medicoNombre\": \"Dr. Juan Pérez\",\n  \"diagnostico\": \"Cefalea tensional\",\n  \"detalles\": [\n    {\n      \"medicamentoId\": 1,\n      \"medicamentoNombre\": \"Paracetamol 500mg\",\n      \"cantidad\": 5,\n      \"posologia\": \"1 comprimido cada 8 horas por 5 días\"\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/recetas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"recetas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.2 Listar Recetas",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/recetas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"recetas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.3 Obtener Receta por ID",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/recetas/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"recetas",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3.4 Buscar Recetas por RUT Paciente",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/recetas/paciente?rut=12345678-9",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"recetas",
+								"paciente"
+							],
+							"query": [
+								{
+									"key": "rut",
+									"value": "12345678-9"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "4. Dispensación (ms-dispensacion)",
+			"item": [
+				{
+					"name": "4.1 Dispensar Receta (Flujo Integrado)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"recetaId\": 1,\n  \"sucursalId\": 1,\n  \"farmaceuticoNombre\": \"Farm. Ana García\",\n  \"detalles\": [\n    {\n      \"medicamentoId\": 1,\n      \"medicamentoNombre\": \"Paracetamol 500mg\",\n      \"cantidadDispensada\": 5\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/dispensaciones",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"dispensaciones"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4.2 Listar Dispensaciones",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/dispensaciones",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"dispensaciones"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "4.3 Consultar Dispensación por Receta",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/dispensaciones/receta/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"dispensaciones",
+								"receta",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "5. Pruebas de Seguridad y Validaciones (401, 404, 409)",
+			"item": [
+				{
+					"name": "5.1 Petición Sin Token (Esperado 401 Unauthorized)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/recetas",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"recetas"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5.2 Dispensar Receta Ya Dispensada (Esperado 409 Conflict)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"recetaId\": 1,\n  \"sucursalId\": 1,\n  \"farmaceuticoNombre\": \"Farm. Ana García\",\n  \"detalles\": [\n    {\n      \"medicamentoId\": 1,\n      \"medicamentoNombre\": \"Paracetamol 500mg\",\n      \"cantidadDispensada\": 5\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/dispensaciones",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"dispensaciones"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "5.3 Consultar Receta Inexistente (Esperado 404 Not Found)",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{jwtToken}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/recetas/9999",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"recetas",
+								"9999"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

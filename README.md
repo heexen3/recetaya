@@ -27,7 +27,7 @@ Principios:
 - [x] `ms-auth`: registro de usuarios, login con JWT, CRUD de usuarios
 - [x] `api-gateway`: Spring Cloud Gateway con filtro reactivo para validación de JWT y ruteo centralizado (puerto 8080)
 - [x] `docker-compose.yml` con 4 BDs, 4 microservicios y el API Gateway
-- [ ] Colección de Postman por servicio
+- [x] Colección de Postman completa (`postman_collection.json`) con flujo punta a punta y pruebas de seguridad
 
 ## Stack
 
