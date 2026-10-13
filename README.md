@@ -19,16 +19,6 @@ Principios:
 - **API Gateway con JWT**: Todo el tráfico externo ingresa por el puerto `8080`. El Gateway valida el token JWT emitido por `ms-auth`, rechaza peticiones no autorizadas (`401`) e inyecta las cabeceras `X-Auth-User` y `X-Auth-Role` hacia los servicios internos.
 - Procesos síncronos: login, consultas y dispensación. Proceso asíncrono: reserva de stock tras emitir una receta (diseño objetivo: Amazon SQS + AWS Lambda).
 
-## Estado actual
-
-- [x] `ms-inventario`: CRUD de medicamentos y sucursales, stock por sucursal, reserva de stock
-- [x] `ms-recetas`: emisión de recetas con detalles (OneToMany), estados (EMITIDA, DISPENSADA, ANULADA), PublicadorEventos
-- [x] `ms-dispensacion`: registra entregas, descuenta stock en Inventario (llamada síncrona), marca receta como DISPENSADA
-- [x] `ms-auth`: registro de usuarios, login con JWT, CRUD de usuarios
-- [x] `api-gateway`: Spring Cloud Gateway con filtro reactivo para validación de JWT y ruteo centralizado (puerto 8080)
-- [x] `docker-compose.yml` con 4 BDs, 4 microservicios y el API Gateway
-- [x] Colección de Postman completa (`postman_collection.json`) con flujo punta a punta y pruebas de seguridad
-
 ## Stack
 
 Java 21 · Spring Boot 3.3.5 · Spring Cloud Gateway (2023.0.3) · Spring Data JPA / Hibernate · Bean Validation · Lombok · Spring Security · JJWT (0.12.6) · PostgreSQL 16 · Maven · Docker / Docker Compose
