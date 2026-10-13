@@ -111,7 +111,7 @@ public class DispensacionService {
     private void marcarRecetaDispensada(Long recetaId) {
         String url = recetasUrl + "/api/recetas/" + recetaId + "/dispensar";
         try {
-            restTemplate.patchForObject(url, null, String.class);
+            restTemplate.put(url, null);
             log.info("Receta {} marcada como DISPENSADA", recetaId);
         } catch (HttpClientErrorException.NotFound ex) {
             throw new RecursoNoEncontradoException("Receta " + recetaId + " no existe en ms-recetas");

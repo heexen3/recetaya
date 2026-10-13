@@ -46,12 +46,12 @@ public class RecetaController {
         return service.emitir(req);
     }
 
-    @PatchMapping("/{id}/dispensar")
+    @RequestMapping(value = "/{id}/dispensar", method = {RequestMethod.PATCH, RequestMethod.PUT})
     public RecetaResponse dispensar(@PathVariable Long id) {
         return service.marcarDispensada(id);
     }
 
-    @PatchMapping("/{id}/anular")
+    @RequestMapping(value = "/{id}/anular", method = {RequestMethod.PATCH, RequestMethod.PUT})
     public RecetaResponse anular(@PathVariable Long id) {
         return service.anular(id);
     }
