@@ -104,52 +104,56 @@ Todas las rutas requieren la cabecera `Authorization: Bearer <token>`, excepto l
 
 Errores devueltos: `401` falta o token inválido, `404` recurso inexistente, `409` conflicto de estado o stock insuficiente, `400` validación; formato `{"error": "..."}`.
 
-### Prueba rápida del flujo completo a través del Gateway (puerto 8080)
+## Pruebas con Postman (Colección Incluida)
 
-```bash
-# 1. Registrar médico (Ruta pública)
-curl -X POST http://localhost:8080/api/auth/registro -H "Content-Type: application/json" \
-  -d '{"username":"dr.perez","password":"pass123","nombreCompleto":"Dr. Juan Pérez","rol":"MEDICO"}'
+El proyecto incluye la colección oficial en el archivo [`postman_collection.json`](./postman_collection.json) con todas las peticiones listas para ejecutar a través del API Gateway (`http://localhost:8080`).
 
-# 2. Iniciar sesión y obtener JWT
-TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login -H "Content-Type: application/json" \
-  -d '{"username":"dr.perez","password":"pass123"}' | grep -o '"token":"[^"]*' | grep -o '[^"]*$')
+### 1. Cómo importar la colección
+1. Abre **Postman**.
+2. Haz clic en el botón **Import** (esquina superior izquierda, o atajo `Ctrl + O`).
+3. Arrastra el archivo `postman_collection.json` a la ventana de Postman (o haz clic en *Upload Files* y selecciónalo).
+4. Confirma la importación. Verás la colección **`RecetaYa - API Endpoints (Gateway)`** en el panel izquierdo.
 
-echo "Token obtenido: $TOKEN"
+### 2. Gestión automática del Token JWT
+- Al ejecutar la petición **`1.3 Login`**, Postman ejecuta un script de pruebas integrado que **captura automáticamente el token JWT** de la respuesta y lo asigna a la variable de colección `{{jwtToken}}`.
+- Todas las peticiones posteriores de las carpetas 2, 3 y 4 ya tienen configurado `Authorization: Bearer {{jwtToken}}`, por lo que **no necesitas copiar y pegar el token manualmente**.
 
-# 3. Crear sucursal y medicamento protegidos por JWT
-curl -X POST http://localhost:8080/api/sucursales \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"nombre":"Sucursal Centro","direccion":"Av. Principal 123"}'
+### 3. Flujo guiado de pruebas (orden sugerido)
 
-curl -X POST http://localhost:8080/api/medicamentos \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"codigo":"PARA500","nombre":"Paracetamol 500mg","principioActivo":"Paracetamol","requiereReceta":false}'
+1. **1. Autenticación (`ms-auth`)**:
+   - `1.1 Registro Médico`: Crea al usuario `dr.perez` con rol `MEDICO` (Retorna `201 Created`).
+   - `1.2 Registro Farmacéutico`: Crea a `farm.garcia` con rol `FARMACEUTICO` (Retorna `201 Created`).
+   - `1.3 Login`: Inicia sesión con `dr.perez` y almacena el token JWT (Retorna `200 OK`).
+   - `1.4 Listar Usuarios`: Comprueba el acceso a rutas protegidas con token (Retorna `200 OK`).
 
-# 4. Fijar stock
-curl -X PUT http://localhost:8080/api/stock \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"medicamentoId":1,"sucursalId":1,"cantidad":50}'
+2. **2. Inventario (`ms-inventario`)**:
+   - `2.1 Crear Sucursal`: Registra "Sucursal Centro" (Retorna `201 Created`).
+   - `2.3 Crear Medicamento`: Registra "Paracetamol 500mg" con `id: 1` (Retorna `201 Created`).
+   - `2.5 Fijar Stock en Sucursal`: Inicializa `50` unidades para el medicamento 1 en la sucursal 1 (Retorna `200 OK`).
+   - `2.6 Consultar Stock Medicamento en Sucursal`: Verifica las `50` unidades disponibles (Retorna `200 OK`).
 
-# 5. Emitir receta médica
-curl -X POST http://localhost:8080/api/recetas \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"pacienteNombre":"María López","pacienteRut":"12345678-9","medicoNombre":"Dr. Juan Pérez","diagnostico":"Dolor de cabeza","detalles":[{"medicamentoId":1,"medicamentoNombre":"Paracetamol 500mg","cantidad":5,"posologia":"1 cada 8 horas"}]}'
+3. **3. Recetas (`ms-recetas`)**:
+   - `3.1 Emitir Receta Médica`: Emite una receta para el paciente con `5` unidades de Paracetamol. Queda en estado `EMITIDA` (Retorna `201 Created`).
+   - `3.3 Obtener Receta por ID`: Comprueba que la receta fue registrada con sus detalles (Retorna `200 OK`).
+   - `3.4 Buscar Recetas por RUT Paciente`: Filtra por el RUT del paciente (Retorna `200 OK`).
 
-# 6. Dispensar receta
-curl -X POST http://localhost:8080/api/dispensaciones \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"recetaId":1,"sucursalId":1,"farmaceuticoNombre":"Farm. Ana García","detalles":[{"medicamentoId":1,"medicamentoNombre":"Paracetamol 500mg","cantidadDispensada":5}]}'
+4. **4. Dispensación (`ms-dispensacion`)**:
+   - `4.1 Dispensar Receta (Flujo Integrado)`: Registra la entrega en farmacia. El microservicio orquesta automáticamente:
+     - Descuenta `5` unidades de stock en `ms-inventario`.
+     - Actualiza el estado de la receta a `DISPENSADA` en `ms-recetas`.
+     - Guarda el registro histórico de la dispensación (Retorna `201 Created`).
+   - *Verificación*: Vuelve a ejecutar `2.6` (el stock habrá bajado a `45`) y `3.3` (el estado de la receta ahora es `DISPENSADA`).
 
-# 7. Consultar resultado
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/recetas/1
-curl -H "Authorization: Bearer $TOKEN" "http://localhost:8080/api/stock/consulta?medicamentoId=1&sucursalId=1"
-```
+5. **5. Pruebas de Seguridad y Validaciones (Casos de Borde / Rúbrica)**:
+   - `5.1 Petición Sin Token`: Verifica que el Gateway rechaza accesos sin JWT con `401 Unauthorized`.
+   - `5.2 Dispensar Receta Ya Dispensada`: Intenta dispensar nuevamente la misma receta y verifica la respuesta de conflicto `409 Conflict`.
+   - `5.3 Consultar Receta Inexistente`: Consulta un ID inválido y verifica la respuesta `404 Not Found`.
+
+### 4. Ejecución en lote (Collection Runner)
+Para demostraciones o grabación del video de entrega:
+1. Haz clic derecho sobre la colección **`RecetaYa - API Endpoints (Gateway)`** en Postman.
+2. Selecciona **Run collection**.
+3. Haz clic en **Run RecetaYa - API Endpoints (Gateway)** para ver todo el flujo ejecutarse en secuencia con resultados satisfactorios.
 
 ## Flujo Git
 
